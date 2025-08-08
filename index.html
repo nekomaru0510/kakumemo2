@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>格Memo2 Proto7</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="login-container" style="display:none; text-align:center; margin-top:10vh;">
+        <h2>Googleアカウントでログイン</h2>
+        <button id="google-login-btn" style="font-size:1.2em; padding:0.5em 2em;">Googleでログイン</button>
+    </div>
+    <div class="app-container" id="app-container" style="display:none;">
+        <!-- サイドバー（エクスプローラ） -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2 onclick="app.showDashboard()">📁 エクスプローラ</h2>
+                <div class="tab-actions">
+                    <button class="btn-icon" id="add-game-btn" title="新しいゲーム">🎮➕</button>
+                    <button class="btn-icon" id="refresh-btn" title="更新">🔄</button>
+                </div>
+            </div>
+            
+            <div class="explorer-tree" id="explorer-tree">
+                <!-- ファイルツリーがここに動的に生成される -->
+            </div>
+        </div>
+
+        <!-- メインエリア -->
+        <div class="main-area" id="main-area">
+            <!-- タブバー -->
+            <div class="tab-bar" id="tab-bar">
+                <div class="tab-list" id="tab-list">
+                    <div class="tab active" id="dashboard-tab" data-tab="dashboard">
+                        <span class="tab-icon">📊</span>
+                        <span class="tab-title">ダッシュボード</span>
+                    </div>
+                </div>
+                <div class="tab-actions">
+                    <button class="btn-icon" id="split-editor-btn" title="エディタを分割">⫼</button>
+                    <button class="btn-icon" id="close-all-tabs-btn" title="すべてのタブを閉じる">✕</button>
+                    <button class="btn-icon" id="explorer-toggle-btn" title="エクスプローラ切り替え (Ctrl+Shift+E)">📁</button>
+                    <button class="btn-icon" id="toggle-keyboard-btn" title="拡張キーボード">⌨️</button>
+                </div>
+            </div>
+
+            <!-- コンテンツエリア -->
+            <div class="content-area" id="content-area">
+                <!-- ダッシュボードタブコンテンツ -->
+                <div class="tab-content dashboard-content" id="dashboard-content">
+                    <div class="dashboard-container">
+                        <div class="dashboard-header">
+                            <h1>🎮 格Memo2へようこそ</h1>
+                            <p>格闘ゲームの攻略情報を効率的に管理するためのツールです。</p>
+                        </div>
+
+                        <!-- 統計情報 -->
+                        <div class="stats-section">
+                            <h2>📊 統計</h2>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-icon">📄</div>
+                                    <div class="stat-info">
+                                        <div class="stat-value" id="total-files">0</div>
+                                        <div class="stat-label">総ファイル数</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">🎮</div>
+                                    <div class="stat-info">
+                                        <div class="stat-value" id="total-games">0</div>
+                                        <div class="stat-label">登録ゲーム数</div>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">🔤</div>
+                                    <div class="stat-info">
+                                        <div class="stat-value" id="total-chars">0</div>
+                                        <div class="stat-label">総文字数</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- クイックアクション -->
+                        <div class="actions-section">
+                            <h2>⚡ クイックアクション</h2>
+                            <div class="actions-grid">
+                                <button class="action-btn" onclick="app.showCreateGameDialog()">
+                                    🎮 新しいゲーム
+                                </button>
+                                <button class="action-btn" onclick="app.showCreateFileDialog()">
+                                    📄 新しいファイル
+                                </button>
+                                <button class="action-btn" onclick="app.importData()">
+                                    📥 データインポート
+                                </button>
+                                <button class="action-btn" onclick="app.exportData()">
+                                    📤 データエクスポート
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 検索 -->
+                        <div class="search-section">
+                            <h3>🔍 検索</h3>
+                            <div class="search-container">
+                                <input type="text" id="global-search" placeholder="ファイル、キャラクター、技名などを検索...">
+                                <button class="btn-icon" onclick="app.performGlobalSearch()">🔍</button>
+                            </div>
+                            <div class="search-results" id="search-results">
+                                <!-- 検索結果がここに表示される -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- エディタタブコンテンツ -->
+                <div class="tab-content editor-content" id="editor-content" style="display: none;">
+                    <div class="editor-header">
+                        <div class="file-info">
+                            <span class="file-icon">📄</span>
+                            <span class="file-path" id="current-file-path"></span>
+                            <span class="file-status" id="file-status"></span>
+                        </div>
+                        <div class="editor-actions">
+                            <button class="btn-icon" onclick="app.saveCurrentFile()" title="保存">💾</button>
+                            <button class="btn-icon" onclick="app.showFileOptions()" title="オプション">⚙️</button>
+                        </div>
+                    </div>
+                    
+                    <div class="editor-container">
+                        <div class="editor-toolbar">
+                            <button class="toolbar-btn" onclick="app.toggleBold()" title="太字 (Ctrl+B)"><strong>B</strong></button>
+                            <button class="toolbar-btn" onclick="app.toggleItalic()" title="斜体 (Ctrl+I)"><em>I</em></button>
+                            <button class="toolbar-btn" onclick="app.toggleUnderline()" title="下線 (Ctrl+U)"><u>U</u></button>
+                            <div class="toolbar-separator"></div>
+                            <button class="toolbar-btn" onclick="app.toggleHeading(1)" title="見出し1 (Ctrl+1)">H1</button>
+                            <button class="toolbar-btn" onclick="app.toggleHeading(2)" title="見出し2 (Ctrl+2)">H2</button>
+                            <button class="toolbar-btn" onclick="app.toggleHeading(3)" title="見出し3 (Ctrl+3)">H3</button>
+                            <div class="toolbar-separator"></div>
+                            <button class="toolbar-btn" onclick="app.createLink()" title="リンク (Ctrl+K)">🔗</button>
+                            <button class="toolbar-btn" onclick="app.insertTable()" title="表挿入 (Ctrl+T)">📋</button>
+                        </div>
+                        <div class="editor-main">
+                            <div class="wysiwyg-editor" id="wysiwyg-editor" contenteditable="true">
+                                <!-- WYSIWYG編集エリア -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ウェルカムタブコンテンツ -->
+                <div class="tab-content welcome-content" id="welcome-content" style="display: none;">
+                    <div class="welcome-container">
+                        <h1>🎮 格Memo2へようこそ</h1>
+                        <p>格闘ゲームの攻略情報を効率的に管理するためのツールです。</p>
+                        
+                        <div class="welcome-actions">
+                            <div class="welcome-section">
+                                <h3>📝 開始する</h3>
+                                <button class="action-btn large" onclick="app.createFirstGame()">
+                                    🎮 最初のゲームを作成
+                                </button>
+                                <button class="action-btn large" onclick="app.importSampleData()">
+                                    📥 サンプルデータをインポート
+                                </button>
+                            </div>
+                            
+                            <div class="welcome-section">
+                                <h3>📚 学習する</h3>
+                                <button class="action-btn" onclick="app.showTutorial()">
+                                    🎓 チュートリアル
+                                </button>
+                                <button class="action-btn" onclick="app.showKeyboardShortcuts()">
+                                    ⌨️ キーボードショートカット
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ステータスバー -->
+            <div class="status-bar">
+                <div class="status-left">
+                    <span id="current-line">行 1, 列 1</span>
+                    <span id="file-encoding">UTF-8</span>
+                    <span id="file-type">Markdown</span>
+                </div>
+                <div class="status-right">
+                    <span id="word-count">0 文字</span>
+                    <span id="last-saved">未保存</span>
+                    <button class="btn-icon" onclick="app.toggleTheme()" title="テーマ切り替え">🌙</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 拡張キーボードパネル -->
+        <div class="extended-keyboard" id="extended-keyboard" style="display: none;" tabindex="-1">
+            <div class="keyboard-header" tabindex="-1">
+                <h2>⌨️ 拡張キーボード</h2>
+                <div class="keyboard-actions">
+                    <button class="btn-icon" id="keyboard-settings-btn" title="設定">⚙️</button>
+                    <button class="btn-icon" id="close-keyboard-btn" title="閉じる">✕</button>
+                </div>
+            </div>
+            <div class="keyboard-content" tabindex="-1">
+                <div class="keyboard-buttons" id="keyboard-buttons" tabindex="-1">
+                    <!-- すべてのキーボードボタンがここに表示される -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- モーダルダイアログ -->
+    <div class="modal-overlay" id="modal-overlay" style="display: none;">
+        <div class="modal-content" id="modal-content">
+            <!-- モーダルコンテンツ -->
+        </div>
+    </div>
+
+    <!-- 表作成ダイアログ -->
+    <div class="modal-overlay" id="table-dialog-overlay" style="display: none;">
+        <div class="table-dialog">
+            <div class="dialog-header">
+                <h3>表の作成</h3>
+            </div>
+            <div class="dialog-body">
+                <div class="form-group">
+                    <label for="table-rows">行数:</label>
+                    <input type="number" id="table-rows" min="1" max="20" value="3">
+                </div>
+                <div class="form-group">
+                    <label for="table-cols">列数:</label>
+                    <input type="number" id="table-cols" min="1" max="10" value="3">
+                </div>
+            </div>
+            <div class="dialog-footer">
+                <button class="btn">キャンセル</button>
+                <button class="btn btn-primary">作成</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- コンテキストメニュー -->
+    <div class="context-menu" id="context-menu" style="display: none;">
+        <!-- コンテキストメニューアイテム -->
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
